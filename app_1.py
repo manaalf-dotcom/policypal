@@ -312,12 +312,16 @@ def page_dashboard():
 
         if uploaded and uploaded.name != st.session_state.last_file:
             with st.spinner("✨ Analyzing your policy — about 15 seconds…"):
-                uploaded.seek(0)
-                text = extract_pdf_text(uploaded)
-                st.session_state.policy_text = text
-                st.session_state.analysis = analyze_policy_document(text, API_KEY)
-                st.session_state.last_file = uploaded.name
-                st.session_state.chat_history = []
+                try:
+                    uploaded.seek(0)
+                    text = extract_pdf_text(uploaded)
+                    st.session_state.policy_text = text
+                    st.session_state.analysis = analyze_policy_document(text, API_KEY)
+                    st.session_state.last_file = uploaded.name
+                    st.session_state.chat_history = []
+                except Exception as e:
+                    st.error(f"❌ DEBUG ERROR: {type(e).__name__}: {e}")
+                    st.stop()
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
         return
@@ -675,9 +679,13 @@ def page_ask():
     if user_q:
         st.session_state.chat_history.append({"role": "user", "content": user_q})
         with st.spinner("Searching your policy…"):
-            ans = ask_policy_question(user_q, st.session_state.policy_text, API_KEY,
-                                      st.session_state.chat_history)
-        st.session_state.chat_history.append({"role": "assistant", "content": ans})
+            try:
+                ans = ask_policy_question(user_q, st.session_state.policy_text, API_KEY,
+                                          st.session_state.chat_history)
+                st.session_state.chat_history.append({"role": "assistant", "content": ans})
+            except Exception as e:
+                st.error(f"❌ DEBUG ERROR: {type(e).__name__}: {e}")
+                st.stop()
         st.rerun()
 
     st.markdown('''<div style="text-align:center;font-size:0.78rem;color:#4A3F6B;margin-top:1rem;position:relative;z-index:1">
@@ -694,5 +702,6 @@ elif st.session_state.page == "compare":
     page_compare()
 elif st.session_state.page == "ask":
     page_ask()
+
 
 
