@@ -1,13 +1,12 @@
 """
 compare_policies.py — PolicyPal v3
-Uses Google Gemini via the OpenAI-compatible endpoint.
+Uses Google Gemini via the official google-generativeai SDK.
 """
 import json
-import openai
+import google.generativeai as genai
 import plotly.graph_objects as go
 
-GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
-GEMINI_MODEL = "gemini-1.5-flash-latest"
+GEMINI_MODEL = "gemini-1.5-flash"
 
 DIMENSIONS = [
     "Coverage Completeness",
@@ -19,14 +18,13 @@ DIMENSIONS = [
 ]
 
 
-def _client(api_key: str) -> openai.OpenAI:
-    return openai.OpenAI(api_key=api_key, base_url=GEMINI_BASE_URL)
+def _client(api_key: str):
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel(GEMINI_MODEL)
 
-
-# ─── LLM COMPARISON ──────────────────────────────────────────────────────────
 
 def compare_policies_llm(analysis_a: dict, analysis_b: dict, api_key: str) -> dict:
-    c = _client(api_key)
+    model = _client(api_key)
 
     prompt = f"""You are an expert, impartial insurance advisor comparing two policies side by side.
 
@@ -69,73 +67,40 @@ Return ONLY a valid JSON object — no markdown fences, no extra text — using 
   "b_advantages": ["3 specific advantages of Policy B"],
   "red_flag_a": "Single most important concern about Policy A, or null",
   "red_flag_b": "Single most important concern about Policy B, or null"
-}}
+}}"""
 
-SCORING GUIDE (10 = best):
-- Coverage Completeness: How broadly does it cover typical needs?
-- Affordability: Lower deductible + premium relative to coverage = higher score
-- Flexibility: Network breadth, out-of-area coverage, provider choice
-- Exclusion Risk: Fewer exclusions = higher score (10 = almost none)
-- Ease of Claims: Simpler, faster, more transparent = higher
-- Overall Value: Best combination of coverage and cost
-
-Be specific and grounded in the actual policy data provided. Do not invent facts."""
-
-    resp = c.chat.completions.create(
-        model=GEMINI_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0,
-        max_tokens=1500,
-    )
-    raw = resp.choices[0].message.content.strip()
+    resp = model.generate_content(prompt)
+    raw = resp.text.strip()
     raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     return json.loads(raw)
 
 
-# ─── RADAR CHART ─────────────────────────────────────────────────────────────
-
-def build_radar_chart(
-    comparison: dict,
-    name_a: str = "Policy A",
-    name_b: str = "Policy B",
-) -> go.Figure:
+def build_radar_chart(comparison: dict, name_a: str = "Policy A", name_b: str = "Policy B") -> go.Figure:
     dims = DIMENSIONS
     scores_a = [comparison["dimension_scores"][d]["a"] for d in dims]
     scores_b = [comparison["dimension_scores"][d]["b"] for d in dims]
     sa = scores_a + [scores_a[0]]
     sb = scores_b + [scores_b[0]]
     dc = dims + [dims[0]]
-
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=sa, theta=dc, fill="toself", name=name_a,
-        line=dict(color="#A78BFA", width=2.5),
-        fillcolor="rgba(167,139,250,0.15)",
-        marker=dict(size=7, color="#A78BFA"),
-    ))
-    fig.add_trace(go.Scatterpolar(
-        r=sb, theta=dc, fill="toself", name=name_b,
-        line=dict(color="#38BDF8", width=2.5),
-        fillcolor="rgba(56,189,248,0.12)",
-        marker=dict(size=7, color="#38BDF8"),
-    ))
+    fig.add_trace(go.Scatterpolar(r=sa, theta=dc, fill="toself", name=name_a,
+        line=dict(color="#6366F1", width=3), fillcolor="rgba(99,102,241,0.25)",
+        marker=dict(size=7, color="#6366F1")))
+    fig.add_trace(go.Scatterpolar(r=sb, theta=dc, fill="toself", name=name_b,
+        line=dict(color="#06B6D4", width=3), fillcolor="rgba(6,182,212,0.2)",
+        marker=dict(size=7, color="#06B6D4")))
     fig.update_layout(
         polar=dict(
-            radialaxis=dict(
-                visible=True, range=[0, 10], tickvals=[2, 4, 6, 8, 10],
-                tickfont=dict(size=9), gridcolor="rgba(255,255,255,0.08)",
-                linecolor="rgba(255,255,255,0.1)",
-            ),
-            angularaxis=dict(tickfont=dict(size=11, color="#A89FCC")),
+            radialaxis=dict(visible=True, range=[0, 10], tickvals=[2,4,6,8,10],
+                            tickfont=dict(size=10, color="#7B6FA0"),
+                            gridcolor="rgba(255,255,255,0.08)", linecolor="rgba(255,255,255,0.1)"),
+            angularaxis=dict(tickfont=dict(size=13, family="Plus Jakarta Sans", color="#C4B5FD")),
             bgcolor="rgba(0,0,0,0)",
         ),
         showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2,
-                    xanchor="center", x=0.5, font=dict(size=11, color="#A89FCC")),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=50, r=50, t=20, b=70),
-        height=400,
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5,
+                    font=dict(size=13, color="#C4B5FD"), bgcolor="rgba(0,0,0,0)"),
+        paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=40, r=40, t=20, b=80), height=450,
     )
     return fig
 
