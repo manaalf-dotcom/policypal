@@ -79,7 +79,7 @@ div[data-testid="stTextInput"] input{
 /* ── PAGE ── */
 .pp-page{
   background:transparent;min-height:calc(100vh - 64px);
-  padding:2rem 2.5rem;position:relative;overflow:hidden;
+  padding:0.75rem 2rem;position:relative;overflow:hidden;
 }
 .orb-tr{
   position:absolute;top:-100px;right:-100px;
@@ -95,16 +95,16 @@ div[data-testid="stTextInput"] input{
 }
 
 /* ── HERO ── */
-.hero-wrap{text-align:center;padding:4rem 1rem 3rem;position:relative;z-index:1}
+.hero-wrap{text-align:center;padding:1.2rem 1rem 1rem;position:relative;z-index:1}
 .hero-h{
-  font-size:4.5rem;font-weight:800;color:#EEE8FF;
-  line-height:1.05;margin-bottom:1.25rem;letter-spacing:-2px;
+  font-size:3.8rem;font-weight:800;color:#EEE8FF;
+  line-height:1.05;margin-bottom:0.75rem;letter-spacing:-1.5px;
 }
 .hero-grad{
   background:linear-gradient(135deg,#818CF8,#A78BFA,#38BDF8);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-.hero-sub{font-size:1.1rem;color:#A89FCC;margin-bottom:2.5rem;line-height:1.7}
+.hero-sub{font-size:1rem;color:#A89FCC;margin-bottom:1.25rem;line-height:1.65}
 
 /* ── UPLOAD CARD ── */
 .upload-card{
@@ -465,3 +465,59 @@ div[data-testid="stTextInput"] input{
 .no-policy h3{font-size:1.25rem;font-weight:700;color:#EEE8FF;margin-bottom:6px}
 .no-policy p{font-size:0.9rem;color:#7B6FA0}
 .gap-sm{height:12px}.gap-md{height:20px}.gap-lg{height:30px}
+
+/* ── NAV CONTAINER (wraps logo col + button cols) ── */
+[data-testid="stHorizontalBlock"]:first-of-type{
+  background:rgba(26,15,60,0.85) !important;
+  backdrop-filter:blur(16px) !important;
+  border-bottom:1px solid rgba(167,139,250,0.15) !important;
+  padding:8px 16px !important;
+  margin:0 !important;
+  gap:8px !important;
+}
+.pp-logo{
+  display:flex;align-items:center;gap:10px;
+  font-size:19px;font-weight:800;color:#EEE8FF;
+  letter-spacing:-0.3px;white-space:nowrap;
+}
+
+/* ── UPLOAD ZONE ── */
+.upload-zone-wrapper{
+  background:rgba(255,255,255,0.05);
+  border-radius:28px;
+  border:2px solid rgba(167,139,250,0.2);
+  box-shadow:0 20px 50px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.05);
+  padding:0 !important;
+  overflow:hidden;
+  transition:all 0.3s;
+  margin-bottom:-8px;
+}
+.upload-zone-wrapper:hover{
+  border-color:rgba(167,139,250,0.45);
+  box-shadow:0 20px 50px rgba(99,102,241,0.2);
+}
+.upload-zone-inner{
+  display:flex;align-items:center;gap:1.5rem;
+  padding:1.75rem 2rem;
+}
+
+/* ── Make Streamlit file uploader merge into zone ── */
+div[data-testid="stFileUploader"]{
+  margin-top:0 !important;
+}
+div[data-testid="stFileUploader"]>div{
+  background:rgba(167,139,250,0.04) !important;
+  border:1.5px dashed rgba(167,139,250,0.35) !important;
+  border-radius:0 0 28px 28px !important;
+  border-top:1px solid rgba(167,139,250,0.15) !important;
+  padding:1rem 2rem !important;
+  margin:0 !important;
+}
+div[data-testid="stFileUploadDropzone"]{
+  background:transparent !important;
+}
+
+/* ── Remove default Streamlit top padding/margin on columns ── */
+div[data-testid="stVerticalBlock"] > div:first-child{
+  padding-top:0 !important;
+}
