@@ -37,7 +37,7 @@ PolicyPal is a production-ready AI web application that helps consumers understa
 | Layer | Technology |
 |---|---|
 | Frontend | Streamlit + custom CSS |
-| AI / LLM | OpenAI GPT-4o |
+| AI / LLM | Google Gemini 2.0 Flash |
 | RAG Pipeline | Custom chunking + semantic retrieval |
 | PDF Parsing | pdfplumber |
 | Charts | Plotly |
@@ -72,7 +72,7 @@ See [SETUP.md](SETUP.md) for full installation instructions.
 git clone https://github.com/your-username/PolicyPal
 cd PolicyPal
 pip install -r requirements.txt
-echo 'OPENAI_API_KEY = "sk-..."' > .streamlit/secrets.toml
+echo 'GEMINI_API_KEY = "your-key-here"' > .streamlit/secrets.toml
 streamlit run app.py
 ```
 
