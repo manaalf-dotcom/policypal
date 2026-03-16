@@ -611,7 +611,7 @@ def page_dashboard():
                 <p>Or click to browse &nbsp;•&nbsp; Supports PDF up to 25MB<br>Health · Auto · Home · Renters · Life</p>
               </div>
             </div>''', unsafe_allow_html=True)
-            uploaded = st.file_uploader("", type=["pdf"], key="main_upload",
+            uploaded = st.file_uploader("Upload your policy PDF", type=["pdf"], key="main_upload",
                                         label_visibility="collapsed")
 
         st.markdown('''<div class="chips">
