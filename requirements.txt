@@ -1,7 +1,22 @@
+# Google Gemini SDK
 google-genai>=0.8.0
+
+# Streamlit
 streamlit>=1.32.0
+
+# PDF processing
 pdfplumber>=0.10.0
-plotly>=5.18.0
+pdfminer.six>=20221105
+
+# NLP / chunking
+tiktoken>=0.5.2
+
+# Vector search
 numpy>=1.24.0
 scipy>=1.11.0
-pdfminer.six>=20221105
+
+# Optional: BM25 hybrid search (enhances retrieval quality)
+rank-bm25>=0.2.2
+
+# Charts
+plotly>=5.18.0
