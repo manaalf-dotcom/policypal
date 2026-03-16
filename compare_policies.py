@@ -6,7 +6,7 @@ import json
 from google import genai
 import plotly.graph_objects as go
 
-GEMINI_MODEL = "gemini-1.5-flash-latest"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 DIMENSIONS = [
     "Coverage Completeness",
