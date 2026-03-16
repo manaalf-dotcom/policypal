@@ -1,19 +1,18 @@
 """
 auto_analysis.py — PolicyPal v3
-Uses Google Gemini via the OpenAI-compatible endpoint.
+Uses Google Gemini via the official google-generativeai SDK.
 """
 import json
 import io
 import pdfplumber
-import openai
+import google.generativeai as genai
+
+GEMINI_MODEL = "gemini-1.5-flash"
 
 
-GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
-GEMINI_MODEL = "gemini-1.5-flash-latest"
-
-
-def _client(api_key: str) -> openai.OpenAI:
-    return openai.OpenAI(api_key=api_key, base_url=GEMINI_BASE_URL)
+def _client(api_key: str):
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel(GEMINI_MODEL)
 
 
 # ─── TEXT EXTRACTION ─────────────────────────────────────────────────────────
@@ -35,7 +34,7 @@ def extract_pdf_text(uploaded_file, max_chars: int = 20000) -> str:
 # ─── POLICY ANALYSIS ─────────────────────────────────────────────────────────
 
 def analyze_policy_document(text: str, api_key: str) -> dict:
-    c = _client(api_key)
+    model = _client(api_key)
 
     prompt = f"""You are a licensed insurance advisor. Carefully analyze this insurance policy document and extract key information.
 
@@ -79,13 +78,8 @@ RISK SCORE GUIDE:
 POLICY TEXT:
 {text}"""
 
-    resp = c.chat.completions.create(
-        model=GEMINI_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0,
-        max_tokens=1800,
-    )
-    raw = resp.choices[0].message.content.strip()
+    resp = model.generate_content(prompt)
+    raw = resp.text.strip()
     raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     return json.loads(raw)
 
@@ -98,7 +92,7 @@ def ask_policy_question(
     api_key: str,
     chat_history: list = None,
 ) -> str:
-    c = _client(api_key)
+    model = _client(api_key)
 
     system = f"""You are PolicyPal — a friendly, expert insurance assistant. You answer questions ONLY based on the policy document provided below.
 
@@ -113,15 +107,15 @@ Rules:
 POLICY DOCUMENT:
 {policy_text[:12000]}"""
 
-    messages = [{"role": "system", "content": system}]
+    # Build conversation history for multi-turn
+    history = []
     if chat_history:
-        messages.extend(chat_history[-6:])
-    messages.append({"role": "user", "content": question})
+        for msg in chat_history[-6:]:
+            role = "user" if msg["role"] == "user" else "model"
+            history.append({"role": role, "parts": [msg["content"]]})
 
-    resp = c.chat.completions.create(
-        model=GEMINI_MODEL,
-        messages=messages,
-        temperature=0.2,
-        max_tokens=800,
-    )
-    return resp.choices[0].message.content
+    chat = model.start_chat(history=history)
+    full_prompt = f"{system}\n\nQuestion: {question}"
+    resp = chat.send_message(full_prompt)
+    return resp.text
+
