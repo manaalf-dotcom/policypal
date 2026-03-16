@@ -125,6 +125,3 @@ POLICY DOCUMENT:
         max_tokens=800,
     )
     return resp.choices[0].message.content
-
-
-
