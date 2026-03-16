@@ -9,7 +9,7 @@ import openai
 
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-1.5-flash"
 
 
 def _client(api_key: str) -> openai.OpenAI:
