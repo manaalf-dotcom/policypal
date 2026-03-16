@@ -251,9 +251,10 @@ def radar_fig(cmp, na, nb):
 
 # ── NAV ───────────────────────────────────────────────────────────────────────
 def render_nav():
-    st.markdown(f'<div class="pp-nav"><div class="pp-logo">{pal_svg(28)} PolicyPal</div></div>',
-                unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
+    logo_col, c1, c2, c3 = st.columns([1.2, 1, 1, 1])
+    with logo_col:
+        st.markdown(f'<div class="pp-logo" style="height:44px;display:flex;align-items:center;gap:10px;padding-left:8px">{pal_svg(28)} PolicyPal</div>',
+                    unsafe_allow_html=True)
     with c1:
         if st.button("📊  Dashboard", key="n1", use_container_width=True,
                      type="primary" if st.session_state.page == "dashboard" else "secondary"):
@@ -284,11 +285,13 @@ def page_dashboard():
 
         uc, _ = st.columns([2, 1])
         with uc:
-            st.markdown(f'''<div class="upload-card">
-              <div style="flex-shrink:0">{pal_svg(88)}</div>
-              <div class="upload-card-text">
-                <h3>Drop your policy PDF here</h3>
-                <p>Or click to browse &nbsp;•&nbsp; Supports PDF up to 25MB<br>Health · Auto · Home · Renters · Life</p>
+            st.markdown(f'''<div class="upload-zone-wrapper">
+              <div class="upload-zone-inner">
+                <div style="flex-shrink:0">{pal_svg(88)}</div>
+                <div class="upload-card-text">
+                  <h3>Drop your policy PDF here</h3>
+                  <p>Or click to browse &nbsp;•&nbsp; Supports PDF up to 25MB<br>Health · Auto · Home · Renters · Life</p>
+                </div>
               </div>
             </div>''', unsafe_allow_html=True)
             uploaded = st.file_uploader("Upload your policy PDF", type=["pdf"],
@@ -691,4 +694,5 @@ elif st.session_state.page == "compare":
     page_compare()
 elif st.session_state.page == "ask":
     page_ask()
+
 
