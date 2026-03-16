@@ -9,7 +9,7 @@ import openai
 
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-1.5-flash-latest"
 
 
 def _client(api_key: str) -> openai.OpenAI:
@@ -125,4 +125,6 @@ POLICY DOCUMENT:
         max_tokens=800,
     )
     return resp.choices[0].message.content
+
+
 
