@@ -1,6 +1,6 @@
 """
-auto_analysis.py — PolicyPal v2
-Extracts structured insight from uploaded insurance PDFs automatically.
+auto_analysis.py — PolicyPal v3
+Uses Google Gemini via the OpenAI-compatible endpoint.
 """
 import json
 import io
@@ -8,10 +8,17 @@ import pdfplumber
 import openai
 
 
-# ─── TEXT EXTRACTION ──────────────────────────────────────────────────────────
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+GEMINI_MODEL = "gemini-2.0-flash"
+
+
+def _client(api_key: str) -> openai.OpenAI:
+    return openai.OpenAI(api_key=api_key, base_url=GEMINI_BASE_URL)
+
+
+# ─── TEXT EXTRACTION ─────────────────────────────────────────────────────────
 
 def extract_pdf_text(uploaded_file, max_chars: int = 20000) -> str:
-    """Extract plain text from a Streamlit UploadedFile PDF."""
     text_parts = []
     try:
         data = uploaded_file.read() if hasattr(uploaded_file, "read") else uploaded_file
@@ -22,18 +29,13 @@ def extract_pdf_text(uploaded_file, max_chars: int = 20000) -> str:
                     text_parts.append(page_text)
     except Exception as e:
         return f"[PDF extraction error: {e}]"
-    full = "\n".join(text_parts)
-    return full[:max_chars]
+    return "\n".join(text_parts)[:max_chars]
 
 
 # ─── POLICY ANALYSIS ─────────────────────────────────────────────────────────
 
 def analyze_policy_document(text: str, api_key: str) -> dict:
-    """
-    Call GPT-4o to extract structured insight from policy text.
-    Returns a dict with all key policy fields.
-    """
-    c = openai.OpenAI(api_key=api_key)
+    c = _client(api_key)
 
     prompt = f"""You are a licensed insurance advisor. Carefully analyze this insurance policy document and extract key information.
 
@@ -55,8 +57,8 @@ Use this exact schema:
   "exclusions": ["Up to 6 specific exclusions — things the policy does NOT cover"],
   "risk_flags": ["Up to 3 serious gaps or gotchas the policyholder should know"],
   "risk_score": integer_1_to_10,
-  "risk_explanation": "1–2 sentences explaining the risk score",
-  "plain_summary": "2–3 sentences in plain English — no jargon",
+  "risk_explanation": "1-2 sentences explaining the risk score",
+  "plain_summary": "2-3 sentences in plain English — no jargon",
   "who_its_good_for": "1 sentence describing the ideal policyholder for this plan",
   "potential_savings": "Specific savings tip if you see one, or 'None identified'"
 }}
@@ -70,21 +72,20 @@ COVERAGE AREAS — pick based on policy_type and make values sum to 100:
 - Other: make reasonable categories
 
 RISK SCORE GUIDE:
-1–3 = Excellent (broad coverage, low deductible, few exclusions)
-4–6 = Average (some gaps or high deductible worth watching)
-7–10 = High risk (major exclusions, very high out-of-pocket, or thin coverage)
+1-3 = Excellent (broad coverage, low deductible, few exclusions)
+4-6 = Average (some gaps or high deductible worth watching)
+7-10 = High risk (major exclusions, very high out-of-pocket, or thin coverage)
 
 POLICY TEXT:
 {text}"""
 
     resp = c.chat.completions.create(
-        model="gpt-4o",
+        model=GEMINI_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
         max_tokens=1800,
     )
     raw = resp.choices[0].message.content.strip()
-    # Strip any accidental markdown fences
     raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     return json.loads(raw)
 
@@ -97,11 +98,7 @@ def ask_policy_question(
     api_key: str,
     chat_history: list = None,
 ) -> str:
-    """
-    Answer a user question grounded strictly in the uploaded policy text.
-    Maintains multi-turn conversation history.
-    """
-    c = openai.OpenAI(api_key=api_key)
+    c = _client(api_key)
 
     system = f"""You are PolicyPal — a friendly, expert insurance assistant. You answer questions ONLY based on the policy document provided below.
 
@@ -111,21 +108,21 @@ Rules:
 3. Use plain English. Define any insurance term you must use.
 4. For scenario questions ("Will my plan cover X?"), reason step by step before concluding.
 5. End every scenario answer with: "I recommend confirming directly with your insurer before making a decision."
-6. Be concise — aim for 3–6 sentences unless a scenario requires more detail.
+6. Be concise — aim for 3-6 sentences unless a scenario requires more detail.
 
 POLICY DOCUMENT:
 {policy_text[:12000]}"""
 
     messages = [{"role": "system", "content": system}]
     if chat_history:
-        # Include last 3 turns (6 messages) for context
         messages.extend(chat_history[-6:])
     messages.append({"role": "user", "content": question})
 
     resp = c.chat.completions.create(
-        model="gpt-4o",
+        model=GEMINI_MODEL,
         messages=messages,
         temperature=0.2,
         max_tokens=800,
     )
     return resp.choices[0].message.content
+
