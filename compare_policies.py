@@ -7,7 +7,7 @@ import openai
 import plotly.graph_objects as go
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-1.5-flash"
 
 DIMENSIONS = [
     "Coverage Completeness",
@@ -138,3 +138,4 @@ def build_radar_chart(
         height=400,
     )
     return fig
+
