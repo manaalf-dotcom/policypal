@@ -1,4 +1,4 @@
-"""
+ """
 auto_analysis.py — PolicyPal v3
 Uses Google Gemini via the official google-genai SDK.
 """
@@ -8,11 +8,11 @@ import pdfplumber
 from google import genai
 from google.genai import types
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-1.5-flash-latest"
 
 
 def _client(api_key: str):
-    return genai.Client(api_key=api_key)
+    return genai.Client(api_key=api_key, http_options={"api_version": "v1"})
 
 
 def extract_pdf_text(uploaded_file, max_chars: int = 20000) -> str:
