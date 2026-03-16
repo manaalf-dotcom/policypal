@@ -18,6 +18,34 @@ _fonts = '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans
 st.markdown(_fonts, unsafe_allow_html=True)
 st.markdown(f"<style>{_css}</style>", unsafe_allow_html=True)
 
+# JS runtime padding killer — runs after Streamlit renders, beats CSS specificity
+st.markdown("""
+<script>
+(function removePadding() {
+  const selectors = [
+    '.block-container',
+    '[data-testid="stMainBlockContainer"]',
+    '[data-testid="stAppViewBlockContainer"]',
+    '.stMainBlockContainer',
+  ];
+  function kill() {
+    selectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(el => {
+        el.style.setProperty('padding-top', '0', 'important');
+        el.style.setProperty('padding-bottom', '0', 'important');
+        el.style.setProperty('margin-top', '0', 'important');
+      });
+    });
+  }
+  kill();
+  setTimeout(kill, 100);
+  setTimeout(kill, 500);
+  const obs = new MutationObserver(kill);
+  obs.observe(document.body, {childList: true, subtree: true});
+})();
+</script>
+""", unsafe_allow_html=True)
+
 def _get_api_key():
     try:
         k = st.secrets.get("GEMINI_API_KEY", "")
@@ -312,16 +340,12 @@ def page_dashboard():
 
         if uploaded and uploaded.name != st.session_state.last_file:
             with st.spinner("✨ Analyzing your policy — about 15 seconds…"):
-                try:
-                    uploaded.seek(0)
-                    text = extract_pdf_text(uploaded)
-                    st.session_state.policy_text = text
-                    st.session_state.analysis = analyze_policy_document(text, API_KEY)
-                    st.session_state.last_file = uploaded.name
-                    st.session_state.chat_history = []
-                except Exception as e:
-                    st.error(f"❌ DEBUG ERROR: {type(e).__name__}: {e}")
-                    st.stop()
+                uploaded.seek(0)
+                text = extract_pdf_text(uploaded)
+                st.session_state.policy_text = text
+                st.session_state.analysis = analyze_policy_document(text, API_KEY)
+                st.session_state.last_file = uploaded.name
+                st.session_state.chat_history = []
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
         return
@@ -684,7 +708,7 @@ def page_ask():
                                           st.session_state.chat_history)
                 st.session_state.chat_history.append({"role": "assistant", "content": ans})
             except Exception as e:
-                st.error(f"❌ DEBUG ERROR: {type(e).__name__}: {e}")
+                st.error(f"DEBUG: {type(e).__name__}: {e}")
                 st.stop()
         st.rerun()
 
