@@ -7,7 +7,7 @@ import io
 import pdfplumber
 from google import genai
 
-GEMINI_MODEL = "gemini-1.5-flash-latest"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 
 def _client(api_key: str):
