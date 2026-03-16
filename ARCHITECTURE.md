@@ -13,12 +13,12 @@ User uploads PDF
 └────────┬────────┘
          │
          ▼
-┌─────────────────┐
-│  GPT-4o Analysis│  Structured JSON extraction via prompt
-│  (auto_analysis)│  → policy_type, deductible, premium, OOP max,
-│                 │    coverage_areas, benefits, exclusions,
-│                 │    risk_score, risk_flags, plain_summary
-└────────┬────────┘
+┌──────────────────────┐
+│  Gemini 2.0 Flash    │  Structured JSON extraction via prompt
+│  (auto_analysis.py)  │  → policy_type, deductible, premium, OOP max,
+│                      │    coverage_areas, benefits, exclusions,
+│                      │    risk_score, risk_flags, plain_summary
+└────────┬─────────────┘
          │
          ▼
 ┌─────────────────┐
@@ -38,13 +38,21 @@ User uploads PDF
 ### `auto_analysis.py`
 Three functions:
 1. `extract_pdf_text(file)` — pdfplumber → raw text, truncated to 20k chars
-2. `analyze_policy_document(text, api_key)` — GPT-4o prompt returning structured JSON
+2. `analyze_policy_document(text, api_key)` — Gemini 2.0 Flash prompt returning structured JSON
 3. `ask_policy_question(question, text, api_key, history)` — multi-turn RAG Q&A
 
 ### `compare_policies.py`
 Two functions:
-1. `compare_policies_llm(an_a, an_b, api_key)` — GPT-4o comparison returning dimension scores, winners, best-for matrix
+1. `compare_policies_llm(an_a, an_b, api_key)` — Gemini 2.0 Flash comparison returning dimension scores, winners, best-for matrix
 2. `build_radar_chart(comparison, na, nb)` — Plotly radar chart
+
+## API Integration
+
+Gemini is accessed via Google's OpenAI-compatible endpoint:
+```
+https://generativelanguage.googleapis.com/v1beta/openai/
+```
+The standard `openai` Python package is used as the client — no additional SDK required. `GEMINI_API_KEY` is passed as the key and `gemini-2.0-flash` as the model name.
 
 ## Anti-Hallucination Design
 
