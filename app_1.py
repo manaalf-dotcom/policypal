@@ -20,13 +20,13 @@ st.markdown(f"<style>{_css}</style>", unsafe_allow_html=True)
 
 def _get_api_key():
     try:
-        k = st.secrets.get("OPENAI_API_KEY", "")
+        k = st.secrets.get("GEMINI_API_KEY", "")
         if k: return k
     except Exception:
         pass
-    k = os.environ.get("OPENAI_API_KEY", "")
+    k = os.environ.get("GEMINI_API_KEY", "")
     if k: return k
-    st.error("⚠️ Add OPENAI_API_KEY to Streamlit Secrets.")
+    st.error("⚠️ Add GEMINI_API_KEY to Streamlit Secrets.")
     st.stop()
 
 API_KEY = _get_api_key()
