@@ -8,7 +8,7 @@ import pdfplumber
 from google import genai
 from google.genai import types
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.0-flash-lite"
 
 
 def _client(api_key: str):
@@ -74,13 +74,16 @@ RISK SCORE GUIDE:
 POLICY TEXT:
 {text}"""
 
-    resp = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt,
-    )
-    raw = resp.text.strip()
-    raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-    return json.loads(raw)
+    try:
+        resp = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+        )
+        raw = resp.text.strip()
+        raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        return json.loads(raw)
+    except Exception as e:
+        raise RuntimeError(f"Gemini API error: {type(e).__name__}: {e}") from e
 
 
 def ask_policy_question(
