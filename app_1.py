@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-st.markdown("""
+st.html("""
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -315,7 +315,7 @@ div[data-testid="stSpinner"]>div{color:#A78BFA!important}
 .no-policy p{font-size:0.88rem;color:#7B6FA0}
 .gap-sm{height:10px}.gap-md{height:18px}.gap-lg{height:26px}
 </style>
-""", unsafe_allow_html=True)
+""")
 
 # ── API KEY — server-side only, never shown to users ─────────────────────────
 def _get_api_key():
