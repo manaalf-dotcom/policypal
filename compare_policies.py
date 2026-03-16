@@ -7,7 +7,7 @@ import openai
 import plotly.graph_objects as go
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-1.5-flash-latest"
 
 DIMENSIONS = [
     "Coverage Completeness",
