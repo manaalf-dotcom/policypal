@@ -1,13 +1,14 @@
 """
-compare_policies.py — PolicyPal v2
-Visual, structured comparison of two insurance policies.
-Replaces the previous basic comparison module.
+compare_policies.py — PolicyPal v3
+Uses Google Gemini via the OpenAI-compatible endpoint.
 """
 import json
 import openai
 import plotly.graph_objects as go
 
-# The 6 dimensions used in the radar chart and scoring table
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+GEMINI_MODEL = "gemini-2.0-flash"
+
 DIMENSIONS = [
     "Coverage Completeness",
     "Affordability",
@@ -18,14 +19,14 @@ DIMENSIONS = [
 ]
 
 
+def _client(api_key: str) -> openai.OpenAI:
+    return openai.OpenAI(api_key=api_key, base_url=GEMINI_BASE_URL)
+
+
 # ─── LLM COMPARISON ──────────────────────────────────────────────────────────
 
 def compare_policies_llm(analysis_a: dict, analysis_b: dict, api_key: str) -> dict:
-    """
-    Use GPT-4o to compare two analyzed policies across 6 dimensions.
-    Returns a structured comparison dict.
-    """
-    c = openai.OpenAI(api_key=api_key)
+    c = _client(api_key)
 
     prompt = f"""You are an expert, impartial insurance advisor comparing two policies side by side.
 
@@ -46,22 +47,22 @@ Return ONLY a valid JSON object — no markdown fences, no extra text — using 
     "Overall Value":          {{"a": 1_to_10, "b": 1_to_10}}
   }},
   "category_winners": {{
-    "Coverage Completeness": "A" | "B" | "Tie",
-    "Affordability": "A" | "B" | "Tie",
-    "Flexibility": "A" | "B" | "Tie",
-    "Exclusion Risk": "A" | "B" | "Tie",
-    "Ease of Claims": "A" | "B" | "Tie",
-    "Overall Value": "A" | "B" | "Tie"
+    "Coverage Completeness": "A or B or Tie",
+    "Affordability": "A or B or Tie",
+    "Flexibility": "A or B or Tie",
+    "Exclusion Risk": "A or B or Tie",
+    "Ease of Claims": "A or B or Tie",
+    "Overall Value": "A or B or Tie"
   }},
-  "overall_winner": "A" | "B" | "Tie",
+  "overall_winner": "A or B or Tie",
   "overall_score_a": 1_to_10,
   "overall_score_b": 1_to_10,
-  "overall_winner_reason": "2–3 plain-English sentences explaining why",
+  "overall_winner_reason": "2-3 plain-English sentences explaining why",
   "best_for": {{
-    "Young and healthy": "A" | "B",
-    "Families with children": "A" | "B",
-    "Chronic conditions": "A" | "B",
-    "Budget-conscious": "A" | "B"
+    "Young and healthy": "A or B",
+    "Families with children": "A or B",
+    "Chronic conditions": "A or B",
+    "Budget-conscious": "A or B"
   }},
   "key_tradeoffs": ["3 specific tradeoffs between the two plans"],
   "a_advantages": ["3 specific advantages of Policy A"],
@@ -81,7 +82,7 @@ SCORING GUIDE (10 = best):
 Be specific and grounded in the actual policy data provided. Do not invent facts."""
 
     resp = c.chat.completions.create(
-        model="gpt-4o",
+        model=GEMINI_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
         max_tokens=1500,
@@ -98,49 +99,39 @@ def build_radar_chart(
     name_a: str = "Policy A",
     name_b: str = "Policy B",
 ) -> go.Figure:
-    """Build a Plotly radar (spider) chart from comparison dimension scores."""
     dims = DIMENSIONS
     scores_a = [comparison["dimension_scores"][d]["a"] for d in dims]
     scores_b = [comparison["dimension_scores"][d]["b"] for d in dims]
-
-    # Close the polygon by repeating the first value
     sa = scores_a + [scores_a[0]]
     sb = scores_b + [scores_b[0]]
     dc = dims + [dims[0]]
 
     fig = go.Figure()
-
     fig.add_trace(go.Scatterpolar(
         r=sa, theta=dc, fill="toself", name=name_a,
-        line=dict(color="#3B82F6", width=2.5),
-        fillcolor="rgba(59,130,246,0.15)",
-        marker=dict(size=7, color="#3B82F6"),
+        line=dict(color="#A78BFA", width=2.5),
+        fillcolor="rgba(167,139,250,0.15)",
+        marker=dict(size=7, color="#A78BFA"),
     ))
     fig.add_trace(go.Scatterpolar(
         r=sb, theta=dc, fill="toself", name=name_b,
-        line=dict(color="#10B981", width=2.5),
-        fillcolor="rgba(16,185,129,0.15)",
-        marker=dict(size=7, color="#10B981"),
+        line=dict(color="#38BDF8", width=2.5),
+        fillcolor="rgba(56,189,248,0.12)",
+        marker=dict(size=7, color="#38BDF8"),
     ))
-
     fig.update_layout(
         polar=dict(
             radialaxis=dict(
-                visible=True,
-                range=[0, 10],
-                tickvals=[2, 4, 6, 8, 10],
-                tickfont=dict(size=9),
-                gridcolor="rgba(128,128,128,0.15)",
-                linecolor="rgba(128,128,128,0.2)",
+                visible=True, range=[0, 10], tickvals=[2, 4, 6, 8, 10],
+                tickfont=dict(size=9), gridcolor="rgba(255,255,255,0.08)",
+                linecolor="rgba(255,255,255,0.1)",
             ),
-            angularaxis=dict(tickfont=dict(size=11)),
+            angularaxis=dict(tickfont=dict(size=11, color="#A89FCC")),
             bgcolor="rgba(0,0,0,0)",
         ),
         showlegend=True,
-        legend=dict(
-            orientation="h", yanchor="bottom", y=-0.2,
-            xanchor="center", x=0.5, font=dict(size=11),
-        ),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2,
+                    xanchor="center", x=0.5, font=dict(size=11, color="#A89FCC")),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=50, r=50, t=20, b=70),
