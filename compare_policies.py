@@ -6,7 +6,7 @@ import json
 from google import genai
 import plotly.graph_objects as go
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-1.5-flash-latest"
 
 DIMENSIONS = [
     "Coverage Completeness",
@@ -19,7 +19,7 @@ DIMENSIONS = [
 
 
 def _client(api_key: str):
-    return genai.Client(api_key=api_key)
+    return genai.Client(api_key=api_key, http_options={"api_version": "v1"})
 
 
 def compare_policies_llm(analysis_a: dict, analysis_b: dict, api_key: str) -> dict:
@@ -106,4 +106,3 @@ def build_radar_chart(comparison: dict, name_a: str = "Policy A", name_b: str = 
         paper_bgcolor="rgba(0,0,0,0)", margin=dict(l=40, r=40, t=20, b=80), height=450,
     )
     return fig
-
