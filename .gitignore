@@ -1,0 +1,32 @@
+# Secrets — NEVER commit this
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Data files (add your own PDFs locally, don't push them)
+data/
+*.pdf
+
+# Storage / vector store artifacts
+storage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
