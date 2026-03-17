@@ -8,7 +8,7 @@ import io
 import os
 from google import genai
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 
 def _client(api_key: str) -> genai.Client:
